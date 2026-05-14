@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using ColetorDadosSpaceX.ViewModels;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,9 +17,14 @@ namespace ColetorDadosSpaceX
     /// </summary>
     public partial class MainWindow : Window
     {
+        private MainViewModel _viewModel;
         public MainWindow()
         {
             InitializeComponent();
+            _viewModel = new MainViewModel();
+            DataContext = _viewModel;
+
+            Loaded += async(s, e ) => await _viewModel.LoadDataAsync();
         }
     }
 }
