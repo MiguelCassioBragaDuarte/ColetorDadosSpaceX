@@ -8,5 +8,6 @@ namespace ColetorDadosSpaceX.Models
 {
     internal class Status
     {
+
     }
 }
