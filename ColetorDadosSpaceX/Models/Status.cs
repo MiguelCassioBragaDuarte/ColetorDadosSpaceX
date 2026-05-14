@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 
 namespace ColetorDadosSpaceX.Models
 {
-    internal class Status
+    public class Stats
     {
-
+        public int TotalLaunches { get; set; }
+        public int SuccessfulLaunches { get; set; }
+        public int FailedLaunches { get; set; }
+        public double SuccessRate { get; set; }
     }
 }
