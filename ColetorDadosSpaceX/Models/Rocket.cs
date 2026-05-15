@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using SQLite;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+
 
 namespace ColetorDadosSpaceX.Models
 {
     public class Rocket
     {
+        [PrimaryKey]
         [JsonPropertyName("id")]
         public string Id { get; set; }
 
