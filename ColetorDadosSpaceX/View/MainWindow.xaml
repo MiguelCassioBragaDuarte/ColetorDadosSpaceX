@@ -5,8 +5,22 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ColetorDadosSpaceX"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Painel de Coleta - SpaceX" Height="450" Width="800">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="Sincronizar com API SpaceX" Click="BtnSincronizar_Click" Padding="10,5" Margin="0,0,10,0"/>
+            <TextBlock Text="Total de Lançamentos:" VerticalAlignment="Center" Margin="10,0,5,0" FontWeight="Bold"/>
+            <TextBlock Text="{Binding LaunchStats.TotalLaunches}" VerticalAlignment="Center" Margin="0,0,15,0"/>
+            <TextBlock Text="Taxa de Sucesso:" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="Bold"/>
+            <TextBlock Text="{Binding LaunchStats.SuccessRate, StringFormat={}{0:F2}%}" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Launches}" 
+                  AutoGenerateColumns="True" IsReadOnly="True" />
     </Grid>
 </Window>

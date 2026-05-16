@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ColetorDadosSpaceX.Data;
 
-namespace SpaceXApp.ViewModels
+namespace ColetorDadosSpaceX.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {

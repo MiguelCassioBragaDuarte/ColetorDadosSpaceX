@@ -23,8 +23,18 @@ namespace ColetorDadosSpaceX
             InitializeComponent();
             _viewModel = new MainViewModel();
             DataContext = _viewModel;
+            
+        }
 
-            Loaded += async(s, e ) => await _viewModel.LoadDataAsync();
+        private async void BtnSincronizar_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as System.Windows.Controls.Button;
+            if (btn != null) btn.IsEnabled = false; // Trava o botão para não clicar 2x
+
+            await _viewModel.LoadDataAsync();
+
+            if (btn != null) btn.IsEnabled = true; // Destrava o botão
+            MessageBox.Show("Sincronização concluída!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }
