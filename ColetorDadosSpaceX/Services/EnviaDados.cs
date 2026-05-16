@@ -17,34 +17,53 @@ namespace ColetorDadosSpaceX.Services
             _httpClient = new HttpClient();
         }
 
-        // Envia a lista de lançamentos para a API do Aluno 2
+        // Envia os lançamentos um por um para o servidor do colega
         public async Task<bool> LancamentosAsync(List<Launch> launches)
         {
             try
             {
-                // Substitua "/api/Launches" pela rota certa do Swagger dele se for diferente
-                var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/Launches", launches);
-                return response.IsSuccessStatusCode;
+                foreach (var launch in launches)
+                {
+                    // ATENÇÃO: Se no Swagger dele o caminho estiver no singular, mude para: $"{BaseUrl}/api/Launch"
+                    var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/launches", launch);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        // Se der erro 404 (Não Encontrado), significa que o nome da rota acima está errado
+                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                            return false;
+                    }
+                }
+                return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro: {ex.Message}");
+                Console.WriteLine($"Erro ao enviar lançamentos: {ex.Message}");
                 return false;
             }
         }
 
-        // Envia a lista de foguetes para a API do Aluno 2
+        // Envia os foguetes um por um para o servidor do colega
         public async Task<bool> FoguetesAsync(List<Rocket> rockets)
         {
             try
             {
-                // Substitua "/api/Rockets" pela rota certa do Swagger dele se for diferente
-                var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/Rockets", rockets);
-                return response.IsSuccessStatusCode;
+                foreach (var rocket in rockets)
+                {
+                    // ATENÇÃO: Se no Swagger dele o caminho estiver no singular, mude para: $"{BaseUrl}/api/Rocket"
+                    var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/Rockets", rocket);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                            return false;
+                    }
+                }
+                return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro: {ex.Message}");
+                Console.WriteLine($"Erro ao enviar foguetes: {ex.Message}");
                 return false;
             }
         }

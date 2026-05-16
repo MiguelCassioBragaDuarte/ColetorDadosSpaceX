@@ -15,19 +15,19 @@ namespace ColetorDadosSpaceX
             DataContext = _viewModel;
         }
 
-        // Corrigido: Método que o botão "Sincronizar" estava procurando
+        // CORRIGIDO: O botão "Sincronizar Dados" vai chamar esta função
         private async void BtnSincronizar_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as System.Windows.Controls.Button;
-            if (btn != null) btn.IsEnabled = false;
+            if (btn != null) btn.IsEnabled = false; // Desativa o botão temporariamente
 
             await _viewModel.LoadDataAsync();
 
-            if (btn != null) btn.IsEnabled = true;
+            if (btn != null) btn.IsEnabled = true; // Reativa o botão
             MessageBox.Show("Dados atualizados localmente!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // Corrigido: Método que o botão "Enviar para Nuvem" estava procurando
+        // CORRIGIDO: O botão "Enviar para Nuvem" vai chamar esta função
         private async void BtnEnviar_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as System.Windows.Controls.Button;
