@@ -13,7 +13,9 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Content="Sincronizar com API SpaceX" Click="BtnSincronizar_Click" Padding="10,5" Margin="0,0,10,0"/>
+            <Button Content="Sincronizar Dados" Click="BtnSincronizar_Click" Width="150" Height="30" Margin="5"/>
+
+            <Button Content="Enviar para Nuvem" Click="BtnEnviar_Click" Width="150" Height="30" Margin="5" Background="Green" Foreground="White"/>
             <TextBlock Text="Total de Lançamentos:" VerticalAlignment="Center" Margin="10,0,5,0" FontWeight="Bold"/>
             <TextBlock Text="{Binding LaunchStats.TotalLaunches}" VerticalAlignment="Center" Margin="0,0,15,0"/>
             <TextBlock Text="Taxa de Sucesso:" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="Bold"/>

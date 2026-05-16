@@ -1,40 +1,50 @@
-﻿using ColetorDadosSpaceX.ViewModels;
-using System.Text;
+﻿using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using ColetorDadosSpaceX.ViewModels;
 
 namespace ColetorDadosSpaceX
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private MainViewModel _viewModel;
+
         public MainWindow()
         {
             InitializeComponent();
             _viewModel = new MainViewModel();
             DataContext = _viewModel;
-            
         }
 
+        // Corrigido: Método que o botão "Sincronizar" estava procurando
         private async void BtnSincronizar_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as System.Windows.Controls.Button;
-            if (btn != null) btn.IsEnabled = false; // Trava o botão para não clicar 2x
+            if (btn != null) btn.IsEnabled = false;
 
             await _viewModel.LoadDataAsync();
 
-            if (btn != null) btn.IsEnabled = true; // Destrava o botão
-            MessageBox.Show("Sincronização concluída!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (btn != null) btn.IsEnabled = true;
+            MessageBox.Show("Dados atualizados localmente!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        // Corrigido: Método que o botão "Enviar para Nuvem" estava procurando
+        private async void BtnEnviar_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as System.Windows.Controls.Button;
+            if (btn != null) btn.IsEnabled = false;
+
+            bool sucesso = await _viewModel.EnviarDadosAoBackendAsync();
+
+            if (btn != null) btn.IsEnabled = true;
+
+            if (sucesso)
+            {
+                MessageBox.Show("Dados enviados com sucesso para a API do Aluno 2!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Não foi possível enviar os dados. Verifique se a API está online ou se há dados carregados na tela.", "Aviso", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
     }
 }

@@ -15,6 +15,7 @@ namespace ColetorDadosSpaceX.ViewModels
     public class MainViewModel : INotifyPropertyChanged
     {
         private readonly SpaceXApiService _apiService;
+        private readonly EnviaDados _enviaDados;
 
         // Propriedades ligadas à View (MainWindow.xaml)
         public ObservableCollection<Launch> Launches { get; set; }
@@ -30,11 +31,12 @@ namespace ColetorDadosSpaceX.ViewModels
         public MainViewModel()
         {
             _apiService = new SpaceXApiService();
+            _enviaDados = new EnviaDados();
             Launches = new ObservableCollection<Launch>();
             Rockets = new ObservableCollection<Rocket>();
         }
 
-        // Método principal chamado pelo botão da tela
+        // BOTÃO 1: Carrega os dados da API SpaceX ou do SQLite local
         public async Task LoadDataAsync()
         {
             try
@@ -53,7 +55,7 @@ namespace ColetorDadosSpaceX.ViewModels
             }
             catch (Exception ex)
             {
-                // Se der erro de internet (API falhar), tenta carregar os dados salvos do SQLite
+                // Se falhar a internet, tenta carregar os dados salvos do SQLite local
                 Console.WriteLine($"Erro na API: {ex.Message}. Carregando dados locais...");
 
                 var dadosLocais = CarregarLancamentosDoBancoLocal();
@@ -64,6 +66,25 @@ namespace ColetorDadosSpaceX.ViewModels
             }
         }
 
+        // BOTÃO 2: Envia os dados atuais que estão no ecrã para a API do Aluno 2
+        public async Task<bool> EnviarDadosAoBackendAsync()
+        {
+            var listaLancamentos = Launches.ToList();
+            var listaFoguetes = Rockets.ToList();
+
+            // Se não houver dados carregados no ecrã, avisa que não enviou nada
+            if (listaLancamentos.Count == 0 && listaFoguetes.Count == 0)
+            {
+                return false;
+            }
+
+            // Envia as listas de forma assíncrona para o Swagger do teu colega
+            bool sucessoLancamentos = await _enviaDados.LancamentosAsync(listaLancamentos);
+            bool sucessoFoguetes = await _enviaDados.FoguetesAsync(listaFoguetes);
+
+            return sucessoLancamentos && sucessoFoguetes;
+        }
+
         // --- MÉTODOS DE BANCO DE DADOS (SQLite Manual) ---
 
         private void SalvarLancamentosNoBancoLocal(List<Launch> launchesData)
@@ -72,7 +93,6 @@ namespace ColetorDadosSpaceX.ViewModels
             {
                 connection.Open();
 
-                // Usamos uma transação para deixar o insert em massa muito mais rápido
                 using (var transaction = connection.BeginTransaction())
                 {
                     var command = connection.CreateCommand();
@@ -80,7 +100,6 @@ namespace ColetorDadosSpaceX.ViewModels
                         INSERT OR REPLACE INTO Launch (Id, Name, DateUtc, Success, Details) 
                         VALUES ($id, $name, $date, $success, $details)";
 
-                    // Adiciona os parâmetros uma vez e só muda os valores no loop
                     command.Parameters.Add("$id", SqliteType.Text);
                     command.Parameters.Add("$name", SqliteType.Text);
                     command.Parameters.Add("$date", SqliteType.Text);
@@ -91,9 +110,8 @@ namespace ColetorDadosSpaceX.ViewModels
                     {
                         command.Parameters["$id"].Value = launch.Id;
                         command.Parameters["$name"].Value = launch.Name ?? "";
-                        command.Parameters["$date"].Value = launch.DateUtc.ToString("o"); // Formato ISO para data
+                        command.Parameters["$date"].Value = launch.DateUtc.ToString("o");
 
-                        // Lida com o nulo do booleano e converte para Inteiro do SQLite (1 ou 0)
                         if (launch.Success.HasValue)
                             command.Parameters["$success"].Value = launch.Success.Value ? 1 : 0;
                         else
@@ -243,7 +261,7 @@ namespace ColetorDadosSpaceX.ViewModels
             };
         }
 
-        // Implementação do INotifyPropertyChanged para atualizar a UI
+        // Implementação do INotifyPropertyChanged para atualizar o ecrã/UI automaticamente
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
