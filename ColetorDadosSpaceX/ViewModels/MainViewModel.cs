@@ -1,8 +1,7 @@
 ﻿using ColetorDadosSpaceX.Models;
 using ColetorDadosSpaceX.Services;
-using Microsoft.Data.Sqlite;    // Onde está a sua classe DataBase
-using ColetorDadosSpaceX.Models;
-using ColetorDadosSpaceX.Services; // Onde está o SpaceXApiService
+using ColetorDadosSpaceX.Data;
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,7 +9,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using ColetorDadosSpaceX.Data;
 
 namespace ColetorDadosSpaceX.ViewModels
 {
@@ -41,21 +39,28 @@ namespace ColetorDadosSpaceX.ViewModels
         {
             try
             {
-                // 1. Tenta buscar os dados da API SpaceX
+                // 1. Tenta buscar os dados da API SpaceX (Lançamentos e Foguetes)
                 var launchesData = await _apiService.GetLaunchesAsync();
+                var rocketsData = await _apiService.GetRocketsAsync();
 
                 // 2. Salva no banco de dados local SQLite
                 SalvarLancamentosNoBancoLocal(launchesData);
+                SalvarFoguetesNoBancoLocal(rocketsData);
 
                 // 3. Atualiza a interface do usuário
                 AtualizarListasNaTela(launchesData);
+                AtualizarListasFoguetesNaTela(rocketsData);
             }
             catch (Exception ex)
             {
                 // Se der erro de internet (API falhar), tenta carregar os dados salvos do SQLite
                 Console.WriteLine($"Erro na API: {ex.Message}. Carregando dados locais...");
+
                 var dadosLocais = CarregarLancamentosDoBancoLocal();
                 AtualizarListasNaTela(dadosLocais);
+
+                var foguetesLocais = CarregarFoguetesDoBancoLocal();
+                AtualizarListasFoguetesNaTela(foguetesLocais);
             }
         }
 
@@ -103,6 +108,40 @@ namespace ColetorDadosSpaceX.ViewModels
             }
         }
 
+        private void SalvarFoguetesNoBancoLocal(List<Rocket> rocketsData)
+        {
+            using (var connection = DataBase.GetConnection())
+            {
+                connection.Open();
+
+                using (var transaction = connection.BeginTransaction())
+                {
+                    var command = connection.CreateCommand();
+                    command.CommandText = @"
+                        INSERT OR REPLACE INTO Rocket (Id, Name, Description, Active, SuccessRatePct) 
+                        VALUES ($id, $name, $description, $active, $successRatePct)";
+
+                    command.Parameters.Add("$id", SqliteType.Text);
+                    command.Parameters.Add("$name", SqliteType.Text);
+                    command.Parameters.Add("$description", SqliteType.Text);
+                    command.Parameters.Add("$active", SqliteType.Integer);
+                    command.Parameters.Add("$successRatePct", SqliteType.Real);
+
+                    foreach (var rocket in rocketsData)
+                    {
+                        command.Parameters["$id"].Value = rocket.Id;
+                        command.Parameters["$name"].Value = rocket.Name ?? "";
+                        command.Parameters["$description"].Value = rocket.Description ?? "";
+                        command.Parameters["$active"].Value = rocket.Active ? 1 : 0;
+                        command.Parameters["$successRatePct"].Value = rocket.SuccessRatePct;
+
+                        command.ExecuteNonQuery();
+                    }
+                    transaction.Commit();
+                }
+            }
+        }
+
         private List<Launch> CarregarLancamentosDoBancoLocal()
         {
             var lista = new List<Launch>();
@@ -137,6 +176,36 @@ namespace ColetorDadosSpaceX.ViewModels
             return lista;
         }
 
+        private List<Rocket> CarregarFoguetesDoBancoLocal()
+        {
+            var lista = new List<Rocket>();
+
+            using (var connection = DataBase.GetConnection())
+            {
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = "SELECT Id, Name, Description, Active, SuccessRatePct FROM Rocket";
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var rocket = new Rocket
+                        {
+                            Id = reader.GetString(0),
+                            Name = reader.GetString(1),
+                            Description = reader.IsDBNull(2) ? null : reader.GetString(2),
+                            Active = reader.GetInt32(3) == 1,
+                            SuccessRatePct = reader.GetDouble(4)
+                        };
+
+                        lista.Add(rocket);
+                    }
+                }
+            }
+            return lista;
+        }
+
         // --- MÉTODOS AUXILIARES DA VIEWMODEL ---
 
         private void AtualizarListasNaTela(List<Launch> launchesData)
@@ -148,6 +217,15 @@ namespace ColetorDadosSpaceX.ViewModels
             }
 
             CalcularEstatisticas(launchesData);
+        }
+
+        private void AtualizarListasFoguetesNaTela(List<Rocket> rocketsData)
+        {
+            Rockets.Clear();
+            foreach (var rocket in rocketsData)
+            {
+                Rockets.Add(rocket);
+            }
         }
 
         private void CalcularEstatisticas(List<Launch> launchesData)
