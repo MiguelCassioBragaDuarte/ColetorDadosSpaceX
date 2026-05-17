@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ColetorDadosSpaceX"
         mc:Ignorable="d"
-        Title="Painel de Coleta - SpaceX" Height="450" Width="800">
+        Title="Painel de Coleta - SpaceX" Height="550" Width="850">
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -14,15 +14,45 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
             <Button Content="Sincronizar Dados" Click="BtnSincronizar_Click" Width="150" Height="30" Margin="5"/>
-
             <Button Content="Enviar para Nuvem" Click="BtnEnviar_Click" Width="150" Height="30" Margin="5" Background="Green" Foreground="White"/>
+
             <TextBlock Text="Total de Lançamentos:" VerticalAlignment="Center" Margin="10,0,5,0" FontWeight="Bold"/>
             <TextBlock Text="{Binding LaunchStats.TotalLaunches}" VerticalAlignment="Center" Margin="0,0,15,0"/>
+
             <TextBlock Text="Taxa de Sucesso:" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="Bold"/>
             <TextBlock Text="{Binding LaunchStats.SuccessRate, StringFormat={}{0:F2}%}" VerticalAlignment="Center"/>
         </StackPanel>
 
-        <DataGrid Grid.Row="1" ItemsSource="{Binding Launches}" 
-                  AutoGenerateColumns="True" IsReadOnly="True" />
+        <TabControl Grid.Row="1">
+
+            <TabItem Header="Lançamentos">
+                <Grid Margin="5">
+                    <DataGrid ItemsSource="{Binding Launches}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="150"/>
+                            <DataGridTextColumn Header="Nome da Missão" Binding="{Binding Name}" Width="150"/>
+                            <DataGridTextColumn Header="Data (UTC)" Binding="{Binding DateUtc, StringFormat={}{0:dd/MM/yyyy HH:mm}}" Width="130"/>
+                            <DataGridCheckBoxColumn Header="Sucesso" Binding="{Binding Success}" Width="80"/>
+                            <DataGridTextColumn Header="Detalhes" Binding="{Binding Details}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Foguetes">
+                <Grid Margin="5">
+                    <DataGrid ItemsSource="{Binding Rockets}" AutoGenerateColumns="False" IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="150"/>
+                            <DataGridTextColumn Header="Nome do Foguete" Binding="{Binding Name}" Width="150"/>
+                            <DataGridCheckBoxColumn Header="Ativo" Binding="{Binding Active}" Width="80"/>
+                            <DataGridTextColumn Header="Taxa de Sucesso" Binding="{Binding SuccessRatePct, StringFormat={}{0}%}" Width="120"/>
+                            <DataGridTextColumn Header="Descrição" Binding="{Binding Description}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
     </Grid>
 </Window>
