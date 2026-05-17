@@ -15,19 +15,18 @@ namespace ColetorDadosSpaceX
             DataContext = _viewModel;
         }
 
-        // CORRIGIDO: O botão "Sincronizar Dados" vai chamar esta função
+        // Esse é o método da linha 16 que estava faltando!
         private async void BtnSincronizar_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as System.Windows.Controls.Button;
-            if (btn != null) btn.IsEnabled = false; // Desativa o botão temporariamente
+            if (btn != null) btn.IsEnabled = false;
 
             await _viewModel.LoadDataAsync();
 
-            if (btn != null) btn.IsEnabled = true; // Reativa o botão
+            if (btn != null) btn.IsEnabled = true;
             MessageBox.Show("Dados atualizados localmente!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // CORRIGIDO: O botão "Enviar para Nuvem" vai chamar esta função
         private async void BtnEnviar_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as System.Windows.Controls.Button;
@@ -39,7 +38,7 @@ namespace ColetorDadosSpaceX
 
             if (sucesso)
             {
-                MessageBox.Show("Dados enviados com sucesso para a API do Aluno 2!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Dados enviados com sucesso em lote para a API do Aluno 2!", "Sucesso", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ColetorDadosSpaceX.Services
@@ -11,30 +12,35 @@ namespace ColetorDadosSpaceX.Services
     {
         private readonly HttpClient _httpClient;
         private const string BaseUrl = "http://apispacex.runasp.net";
+        private readonly JsonSerializerOptions _jsonOptions;
 
         public EnviaDados()
         {
             _httpClient = new HttpClient();
+            // Garante que o C# respeite as letras maiúsculas das propriedades anônimas que criamos abaixo
+            _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = null };
         }
 
-        // Envia os lançamentos um por um para o servidor do colega
         public async Task<bool> LancamentosAsync(List<Launch> launches)
         {
             try
             {
-                foreach (var launch in launches)
-                {
-                    // ATENÇÃO: Se no Swagger dele o caminho estiver no singular, mude para: $"{BaseUrl}/api/Launch"
-                    var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/launches", launch);
+                var listaFormatada = new List<object>();
 
-                    if (!response.IsSuccessStatusCode)
+                foreach (var l in launches)
+                {
+                    // Monta o JSON exatamente como o Swagger dele pediu: Id, Name, Success, Details
+                    listaFormatada.Add(new
                     {
-                        // Se der erro 404 (Não Encontrado), significa que o nome da rota acima está errado
-                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                            return false;
-                    }
+                        Id = l.Id,
+                        Name = l.Name ?? "",
+                        Success = l.Success ?? false,
+                        Details = l.Details ?? ""
+                    });
                 }
-                return true;
+
+                var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/SpaceX/launches/batch", listaFormatada, _jsonOptions);
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
@@ -43,23 +49,27 @@ namespace ColetorDadosSpaceX.Services
             }
         }
 
-        // Envia os foguetes um por um para o servidor do colega
         public async Task<bool> FoguetesAsync(List<Rocket> rockets)
         {
             try
             {
-                foreach (var rocket in rockets)
-                {
-                    // ATENÇÃO: Se no Swagger dele o caminho estiver no singular, mude para: $"{BaseUrl}/api/Rocket"
-                    var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/Rockets", rocket);
+                var listaFormatada = new List<object>();
 
-                    if (!response.IsSuccessStatusCode)
+                foreach (var r in rockets)
+                {
+                    // Monta o JSON mapeando para "SuccessRatePct" exigido pelo Swagger do Aluno 2
+                    listaFormatada.Add(new
                     {
-                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                            return false;
-                    }
+                        Id = r.Id,
+                        Name = r.Name ?? "",
+                        Description = r.Description ?? "",
+                        Active = r.Active,
+                        SuccessRatePct = r.SuccessRatePct // Aqui faz a correspondência perfeita!
+                    });
                 }
-                return true;
+
+                var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/SpaceX/rockets/batch", listaFormatada, _jsonOptions);
+                return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
