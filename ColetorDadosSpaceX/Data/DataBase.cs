@@ -23,11 +23,9 @@ namespace ColetorDadosSpaceX.Data
             if (!Directory.Exists(pastaBase))
                 Directory.CreateDirectory(pastaBase);
 
-            // 2. Verifica se o ficheiro do banco existe. Se não existir, cria as tabelas.
-            if (!File.Exists(caminhoBanco))
-            {
-                CriarTabelas();
-            }
+            // CORREÇÃO CRUCIAL: Retirado o 'if File.Exists'. 
+            // Chamamos o método direto e o 'IF NOT EXISTS' do SQL resolve com segurança.
+            CriarTabelas();
         }
 
         public static SqliteConnection GetConnection()
@@ -42,33 +40,25 @@ namespace ColetorDadosSpaceX.Data
             {
                 connection.Open();
 
-                // Comando SQL para criar a tabela de Lançamentos
-                var commandLaunch = connection.CreateCommand();
-                commandLaunch.CommandText = @"
+                // Unificamos os comandos em uma única execução para melhor performance e limpeza de código
+                var command = connection.CreateCommand();
+                command.CommandText = @"
                     CREATE TABLE IF NOT EXISTS Launch (
                         Id TEXT PRIMARY KEY,
                         Name TEXT,
                         DateUtc TEXT,
                         Success INTEGER, 
                         Details TEXT
-                    );";
-                commandLaunch.ExecuteNonQuery();
+                    );
 
-                // Comando SQL para criar a tabela de Foguetes
-                var commandRocket = connection.CreateCommand();
-                commandRocket.CommandText = @"
                     CREATE TABLE IF NOT EXISTS Rocket (
                         Id TEXT PRIMARY KEY,
                         Name TEXT,
                         Description TEXT,
                         Active INTEGER,
                         SuccessRatePct REAL
-                    );";
-                commandRocket.ExecuteNonQuery();
+                    );
 
-                // Opcional: Tabela para Stats se quiserem persistir os resumos
-                var commandStats = connection.CreateCommand();
-                commandStats.CommandText = @"
                     CREATE TABLE IF NOT EXISTS Stats (
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         TotalLaunches INTEGER,
@@ -76,7 +66,8 @@ namespace ColetorDadosSpaceX.Data
                         FailedLaunches INTEGER,
                         SuccessRate REAL
                     );";
-                commandStats.ExecuteNonQuery();
+
+                command.ExecuteNonQuery();
             }
         }
     }
