@@ -17,7 +17,6 @@ namespace ColetorDadosSpaceX.Services
         public EnviaDados()
         {
             _httpClient = new HttpClient();
-            // Garante que o C# respeite as letras maiúsculas das propriedades anônimas que criamos abaixo
             _jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = null };
         }
 
@@ -26,10 +25,8 @@ namespace ColetorDadosSpaceX.Services
             try
             {
                 var listaFormatada = new List<object>();
-
                 foreach (var l in launches)
                 {
-                    // Monta o JSON exatamente como o Swagger dele pediu: Id, Name, Success, Details
                     listaFormatada.Add(new
                     {
                         Id = l.Id,
@@ -39,12 +36,32 @@ namespace ColetorDadosSpaceX.Services
                     });
                 }
 
-                var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/SpaceX/launches/batch", listaFormatada, _jsonOptions);
-                return response.IsSuccessStatusCode;
+                // Faz a requisição e guarda a resposta completa do servidor
+                HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/SpaceX/launches/batch", listaFormatada, _jsonOptions);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("[SUCESSO] Lote de Lançamentos enviado com sucesso para a API!");
+                    return true;
+                }
+                else
+                {
+                    // Ponto importante da aula: Capturar o motivo exato do erro retornado pela API
+                    string errorContent = await response.Content.ReadAsStringAsync();
+
+                    Console.WriteLine("[ERRO DE API - LANÇAMENTOS]");
+                    Console.WriteLine($"Status Code retornado: {(int)response.StatusCode} ({response.StatusCode})");
+                    Console.WriteLine($"Detalhes do erro do servidor: {errorContent}");
+                    Console.WriteLine("--------------------------------------------------");
+
+                    return false;
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao enviar lançamentos: {ex.Message}");
+                // Captura erros graves como: internet caída, servidor fora do ar ou URL errada
+                Console.WriteLine("[EXCEÇÃO CRÍTICA - LANÇAMENTOS]");
+                Console.WriteLine($"Mensagem do Erro: {ex.Message}");
                 return false;
             }
         }
@@ -54,26 +71,42 @@ namespace ColetorDadosSpaceX.Services
             try
             {
                 var listaFormatada = new List<object>();
-
                 foreach (var r in rockets)
                 {
-                    // Monta o JSON mapeando para "SuccessRatePct" exigido pelo Swagger do Aluno 2
                     listaFormatada.Add(new
                     {
                         Id = r.Id,
                         Name = r.Name ?? "",
                         Description = r.Description ?? "",
                         Active = r.Active,
-                        SuccessRatePct = r.SuccessRatePct // Aqui faz a correspondência perfeita!
+                        SuccessRatePct = r.SuccessRatePct
                     });
                 }
 
-                var response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/SpaceX/rockets/batch", listaFormatada, _jsonOptions);
-                return response.IsSuccessStatusCode;
+                HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"{BaseUrl}/api/SpaceX/rockets/batch", listaFormatada, _jsonOptions);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("[SUCESSO] Lote de Foguetes enviado com sucesso para a API!");
+                    return true;
+                }
+                else
+                {
+                    // Ponto importante da aula: Capturar o motivo exato do erro retornado pela API
+                    string errorContent = await response.Content.ReadAsStringAsync();
+
+                    Console.WriteLine("[ERRO DE API - FOGUETES]");
+                    Console.WriteLine($"Status Code retornado: {(int)response.StatusCode} ({response.StatusCode})");
+                    Console.WriteLine($"Detalhes do erro do servidor: {errorContent}");
+                    Console.WriteLine("--------------------------------------------------");
+
+                    return false;
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao enviar foguetes: {ex.Message}");
+                Console.WriteLine("[EXCEÇÃO CRÍTICA - FOGUETES]");
+                Console.WriteLine($"Mensagem do Erro: {ex.Message}");
                 return false;
             }
         }
